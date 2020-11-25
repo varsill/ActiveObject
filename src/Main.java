@@ -85,9 +85,9 @@ class Producer implements  Runnable
 }
 
 public class Main {
-    private static final ConcurrentSkipListSet<Produce> producingRequests = new ConcurrentSkipListSet<>();
-    public static final int howManyProducers = 10000;
-    public static final int howManyConsumers = 10000;
+
+    public static final int howManyProducers = 100;
+    public static final int howManyConsumers = 100;
     public static final int bufferSize = 100;
     public static void main(String[] args)
     {

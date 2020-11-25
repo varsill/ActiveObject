@@ -37,24 +37,7 @@ public class Scheduler {
    public void enqueueConsumingRequest(Consume methodRequest) throws InterruptedException {
 
        lockForConsumingRequests.lock();
-
-       while(isSchedulerModifyingConsumingRequests)
-       {
-           this.waitForSchedulerFinishingJobOnConsumingRequests.await();
-       }
-
-
-       stateLock.lock();
-       isAnotherThreadModyfingConsumingRequests = true;
-       stateLock.unlock();
-
        consumingRequests.addLast( methodRequest);
-
-       stateLock.lock();
-       isAnotherThreadModyfingConsumingRequests = false;
-       conditionForScheduler.signal();
-       stateLock.unlock();
-
        lockForConsumingRequests.unlock();
 
    }
@@ -62,25 +45,7 @@ public class Scheduler {
     public void enqueueProducingRequest(Produce methodRequest) throws InterruptedException {
 
         lockForProducingRequests.lock();
-
-        while(isSchedulerModifyingProducingRequests)
-        {
-
-            this.waitForSchedulerFinishingJobOnProducingRequests.await();
-        }
-
-
-        stateLock.lock();
-        isAnotherThreadModyfingProducingRequests = true;
-        stateLock.unlock();
-
         producingRequests.addLast(methodRequest);
-
-        stateLock.lock();
-        isAnotherThreadModyfingProducingRequests = false;
-        conditionForScheduler.signal();
-        stateLock.unlock();
-
         lockForProducingRequests.unlock();
 
 
@@ -89,42 +54,16 @@ public class Scheduler {
 
 
     private void enqueueConsumingRequestAsScheduler(Consume methodRequest) throws InterruptedException {
-        if(methodRequest==null)System.out.println("TSO");
-        isSchedulerModifyingConsumingRequests=true;
-        stateLock.lock();
-        while(isAnotherThreadModyfingConsumingRequests)
-        {
-            conditionForScheduler.await();
-        }
-        stateLock.unlock();
 
         lockForConsumingRequests.lock();
         consumingRequests.addFirst(methodRequest);
-
-
-        isSchedulerModifyingConsumingRequests=false;
-
-        waitForSchedulerFinishingJobOnConsumingRequests.signalAll();
         lockForConsumingRequests.unlock();
     }
 
     private void enqueueProducingRequestAsScheduler(Produce methodRequest) throws InterruptedException {
-        if(methodRequest==null)System.out.println("TSO");
-        isSchedulerModifyingProducingRequests=true;
-        stateLock.lock();
-        while(isAnotherThreadModyfingProducingRequests)
-        {
-            conditionForScheduler.await();
-        }
-        stateLock.unlock();
 
         lockForProducingRequests.lock();
         producingRequests.addFirst(methodRequest);
-
-
-        isSchedulerModifyingProducingRequests=false;
-
-        waitForSchedulerFinishingJobOnProducingRequests.signalAll();
         lockForProducingRequests.unlock();
 
 
@@ -133,21 +72,8 @@ public class Scheduler {
 
     private Consume dequeConsumingRequestAsScheduler() throws InterruptedException {
 
-        isSchedulerModifyingConsumingRequests=true;
-        stateLock.lock();
-        while(isAnotherThreadModyfingConsumingRequests)
-        {
-            conditionForScheduler.await();
-        }
-        stateLock.unlock();
-
         lockForConsumingRequests.lock();
         Consume result = consumingRequests.pollFirst();
-
-
-        isSchedulerModifyingConsumingRequests=false;
-
-        waitForSchedulerFinishingJobOnConsumingRequests.signalAll();
         lockForConsumingRequests.unlock();
         return result;
     }
@@ -155,20 +81,8 @@ public class Scheduler {
 
     private Produce dequeProducingRequestAsScheduler() throws InterruptedException {
 
-        isSchedulerModifyingProducingRequests=true;
-        stateLock.lock();
-        while(isAnotherThreadModyfingProducingRequests)
-        {
-            conditionForScheduler.await();
-        }
-        stateLock.unlock();
-
         lockForProducingRequests.lock();
         Produce result = producingRequests.pollFirst();
-
-        isSchedulerModifyingProducingRequests=false;
-
-        waitForSchedulerFinishingJobOnProducingRequests.signalAll();
         lockForProducingRequests.unlock();
         return result;
     }
@@ -184,7 +98,7 @@ public class Scheduler {
             //System.out.println("ConsumingRequest: "+consumingRequests.size()+" ProducingRequest: "+producingRequests.size()+" FREE: "+this.servant.howManyFreePlaces()+"/"+this.servant.bufferSize);
             //if(producingRequests.contains(null))System.out.println("producing zepsuty");
             //if(consumingRequests.contains(null))System.out.println("consuming zepsuty");
-            if(servant.howManyTakenPlaces()>servant.bufferSize/2)
+            if(servant.howManyTakenPlaces()>=servant.bufferSize/2)
             {
                 //System.out.println("There are more taken places. FREE: " +servant.howManyFreePlaces());
                 MethodRequest request = dequeConsumingRequestAsScheduler();
