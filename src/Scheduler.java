@@ -40,7 +40,7 @@ public class Scheduler {
        {
            this.waitForSchedulerFinishingJobOnConsumingRequests.await();
        }
-
+       lockForConsumingRequests.unlock();
 
        stateLock.lock();
        isAnotherThreadModyfingConsumingRequests = true;
@@ -56,12 +56,12 @@ public class Scheduler {
 
 
 
-       lockForConsumingRequests.unlock();
+
 
    }
 
     public void enqueueProducingRequest(Produce methodRequest) throws InterruptedException {
-        if(methodRequest==null)System.out.println("TSO2");
+
         lockForProducingRequests.lock();
 
         while(isSchedulerModifyingProducingRequests)
@@ -69,6 +69,7 @@ public class Scheduler {
 
             this.waitForSchedulerFinishingJobOnProducingRequests.await();
         }
+        lockForProducingRequests.unlock();
 
         stateLock.lock();
         isAnotherThreadModyfingProducingRequests = true;
@@ -83,7 +84,7 @@ public class Scheduler {
 
 
 
-        lockForProducingRequests.unlock();
+
        // System.out.println("ProducingRequest: "+producingRequests.size());
     }
 
