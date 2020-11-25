@@ -1,8 +1,8 @@
-public  class  ArrayFuture<T>{
+public  class Future<T>{
 
     private boolean _isReady;
     private T result;
-    public ArrayFuture()
+    public Future()
     {
         this._isReady = false;
     }

@@ -1,15 +1,15 @@
 public class Consume implements MethodRequest{
     private Servant servant;
     private int howManyToConsume;
-    private ArrayFuture<int[]> arrayFuture;
+    private Future<int[]> future;
     public int priority = 1;
     private long consumerId;
-    public Consume(Servant servant, int howManyToConsume, ArrayFuture<int[]> arrayFuture, long consumerId)
+    public Consume(Servant servant, int howManyToConsume, Future<int[]> future, long consumerId)
     {
         this.consumerId = consumerId;
         this.servant = servant;
         this.howManyToConsume = howManyToConsume;
-        this.arrayFuture = arrayFuture;
+        this.future = future;
     }
 
     public int getPriority()
@@ -32,7 +32,7 @@ public class Consume implements MethodRequest{
 
         int[] result = this.servant.consume(this.howManyToConsume);
         System.out.println("CONSUMER: "+ consumerId+" had consumed: "+this.howManyToConsume+". In buffer: "+this.servant.buffer.size());
-        this.arrayFuture.bind(result);
+        this.future.bind(result);
     }
 
     @Override

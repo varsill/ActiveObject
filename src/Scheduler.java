@@ -28,12 +28,12 @@ public class Scheduler {
        // System.out.println("ProducingRequest: "+producingRequests.size());
     }
 
-    public synchronized Consume dequeConsumingRequest()
+    public Consume dequeConsumingRequest()
     {
         return consumingRequests.pollFirst();
     }
 
-    public synchronized Produce dequeProducingRequest()
+    public Produce dequeProducingRequest()
     {
         return producingRequests.pollFirst();
     }
@@ -41,7 +41,7 @@ public class Scheduler {
     private final void dispatch() throws Exception {
         while(true) {
             //System.out.println("I am dispatching: "+servant.howManyTakenPlaces());
-            System.out.println("ConsumingRequest: "+consumingRequests.size()+" ProducingRequest: "+producingRequests.size()+" FREE: "+this.servant.howManyFreePlaces()+"/"+this.servant.bufferSize);
+            //System.out.println("ConsumingRequest: "+consumingRequests.size()+" ProducingRequest: "+producingRequests.size()+" FREE: "+this.servant.howManyFreePlaces()+"/"+this.servant.bufferSize);
 
             if(servant.howManyTakenPlaces()>servant.bufferSize/2)
             {

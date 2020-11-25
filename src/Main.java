@@ -21,7 +21,7 @@ class Consumer implements Runnable
 
             while(true){
                 int howManyToConsume = rand.nextInt(MAX_SIZE_TO_TAKE-1)+1;
-                ArrayFuture<int[]> future = proxy.consume(howManyToConsume);
+                Future<int[]> future = proxy.consume(howManyToConsume);
                 int times = 1;
 
                 while(!future.isReady())
@@ -64,7 +64,7 @@ class Producer implements  Runnable
                 int howManyToProduce = rand.nextInt(MAX_SIZE_TO_INSERT-1)+1;
 
                 int[] whatToProduce = new int[howManyToProduce];
-                ArrayFuture<Void> future = proxy.produce(howManyToProduce, whatToProduce);
+                Future<Void> future = proxy.produce(howManyToProduce, whatToProduce);
 
                 int times = 1;
 
@@ -86,9 +86,9 @@ class Producer implements  Runnable
 
 public class Main {
     private static final ConcurrentSkipListSet<Produce> producingRequests = new ConcurrentSkipListSet<>();
-    public static final int howManyProducers = 1000;
-    public static final int howManyConsumers = 1000;
-    public static final int bufferSize = 10;
+    public static final int howManyProducers = 10000;
+    public static final int howManyConsumers = 10000;
+    public static final int bufferSize = 7;
     public static void main(String[] args)
     {
         /*
