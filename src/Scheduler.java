@@ -1,3 +1,4 @@
+import java.util.PriorityQueue;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.Condition;
@@ -7,8 +8,8 @@ import java.util.concurrent.locks.ReentrantLock;
 public class Scheduler {
 
     private final Servant servant;
-    private final ConcurrentSkipListSet<Produce> producingRequests;
-    private final ConcurrentSkipListSet<Consume>  consumingRequests;
+    private final PriorityQueue<Produce> producingRequests;
+    private final PriorityQueue<Consume> consumingRequests;
     private ReentrantLock lock = new ReentrantLock();
     private Condition waitForSchedulerFinishingJobOnProducingRequests = lock.newCondition();
     private boolean isSchedulerModifyingProducingRequests = false;
@@ -19,8 +20,8 @@ public class Scheduler {
    public Scheduler(Servant servant)
    {
        this.servant = servant;
-       producingRequests = new ConcurrentSkipListSet<Produce>();
-       consumingRequests = new ConcurrentSkipListSet<Consume>();
+       producingRequests = new PriorityQueue<Produce>();
+       consumingRequests = new PriorityQueue<Consume>();
 
    }
 
@@ -52,7 +53,7 @@ public class Scheduler {
         {
             this.waitForSchedulerFinishingJobOnConsumingRequests.await();
         }
-        Consume result = consumingRequests.pollFirst();
+        Consume result = consumingRequests.poll();
         lock.unlock();
         return result;
     }
@@ -63,7 +64,7 @@ public class Scheduler {
         {
             this.waitForSchedulerFinishingJobOnConsumingRequests.await();
         }
-        Produce result = producingRequests.pollFirst();
+        Produce result = producingRequests.poll();
         lock.unlock();
         return  result;
    }
@@ -101,7 +102,7 @@ public class Scheduler {
 
         isSchedulerModifyingConsumingRequests=true;
         lock.lock();
-        Consume result = consumingRequests.pollFirst();
+        Consume result = consumingRequests.poll();
 
         waitForSchedulerFinishingJobOnConsumingRequests.signalAll();
         isSchedulerModifyingConsumingRequests=false;
@@ -115,7 +116,7 @@ public class Scheduler {
 
         isSchedulerModifyingProducingRequests=true;
         lock.lock();
-        Produce result = producingRequests.pollFirst();
+        Produce result = producingRequests.poll();
 
         waitForSchedulerFinishingJobOnProducingRequests.signalAll();
         isSchedulerModifyingProducingRequests=false;
@@ -174,7 +175,7 @@ public class Scheduler {
                     request = dequeConsumingRequestAsScheduler();
                     if(request==null)continue;
                     if (!request.guard()) {
-                        System.out.println("Requeing");
+                        //System.out.println("Requeing");
                         ((Consume) request).priority *= 2;
                         enqueueConsumingRequestAsScheduler((Consume)request);
 

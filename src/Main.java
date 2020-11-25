@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentSkipListSet;
 class Consumer implements Runnable
 {
 
-    private static int MAX_SIZE_TO_TAKE = 5;
+    private static int MAX_SIZE_TO_TAKE = 50;
     private Proxy proxy;
     Random rand = new Random();
     public Consumer(Proxy p)
@@ -27,7 +27,7 @@ class Consumer implements Runnable
                 while(!future.isReady())
                 {
                     Thread.sleep((int) (Math.random() * 10));
-                    //System.out.println("CONSUMER: "+Thread.currentThread().getId()+" is waiting for: "+times+" time. He wants to consume: "+howManyToConsume);
+                    System.out.println("CONSUMER: "+Thread.currentThread().getId()+" is waiting for: "+times+" time. He wants to consume: "+howManyToConsume);
                     times++;
                 }
                 int[] result = future.getResult();
@@ -47,7 +47,7 @@ class Consumer implements Runnable
 
 class Producer implements  Runnable
 {
-    private static int MAX_SIZE_TO_INSERT = 5;
+    private static int MAX_SIZE_TO_INSERT = 50;
     private Proxy proxy;
     Random rand = new Random();
     public Producer(Proxy p)
@@ -86,9 +86,9 @@ class Producer implements  Runnable
 
 public class Main {
     private static final ConcurrentSkipListSet<Produce> producingRequests = new ConcurrentSkipListSet<>();
-    public static final int howManyProducers = 10000;
+    public static final int howManyProducers = 10;
     public static final int howManyConsumers = 10000;
-    public static final int bufferSize = 7;
+    public static final int bufferSize = 100;
     public static void main(String[] args)
     {
         /*
