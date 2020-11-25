@@ -1,10 +1,10 @@
 public class Consume implements MethodRequest{
     private Servant servant;
     private int howManyToConsume;
-    private ArrayFuture arrayFuture;
+    private ArrayFuture<int[]> arrayFuture;
     public int priority = 1;
     private long consumerId;
-    public Consume(Servant servant, int howManyToConsume, ArrayFuture arrayFuture, long consumerId)
+    public Consume(Servant servant, int howManyToConsume, ArrayFuture<int[]> arrayFuture, long consumerId)
     {
         this.consumerId = consumerId;
         this.servant = servant;

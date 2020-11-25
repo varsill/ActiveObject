@@ -17,15 +17,18 @@ public class Proxy {
         this(MAX_SIZE);
     }
 
-    void produce(int howManyToProduce, int[] whatToProduce)
+    ArrayFuture<Void> produce(int howManyToProduce, int[] whatToProduce)
     {
-        Produce methodRequest = new Produce(this.servant, howManyToProduce, whatToProduce, Thread.currentThread().getId());
+        ArrayFuture<Void> result = new ArrayFuture<Void>();
+
+        Produce methodRequest = new Produce(this.servant, howManyToProduce, whatToProduce, result, Thread.currentThread().getId());
         this.scheduler.enqueueProducingRequest(methodRequest);
+        return result;
     }
 
-    ArrayFuture consume(int howManyToConsume)
+    ArrayFuture<int[]> consume(int howManyToConsume)
     {
-        ArrayFuture result = new ArrayFuture();
+        ArrayFuture<int[]> result = new ArrayFuture<int[]>();
 
         Consume methodRequest = new Consume(this.servant, howManyToConsume, result, Thread.currentThread().getId());
         this.scheduler.enqueueConsumingRequest(methodRequest);

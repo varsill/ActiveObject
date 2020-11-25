@@ -1,13 +1,13 @@
-public class ArrayFuture {
+public  class  ArrayFuture<T>{
 
     private boolean _isReady;
-    private int[] result;
+    private T result;
     public ArrayFuture()
     {
         this._isReady = false;
     }
 
-    public void bind(int[] result) {
+    public void bind(T result) {
         this.result = result;
         this._isReady=true;
     }
@@ -17,7 +17,7 @@ public class ArrayFuture {
         return _isReady;
     }
 
-    public int[] getResult() throws Exception
+    public T getResult() throws Exception
     {
         if(!_isReady)
         {

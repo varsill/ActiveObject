@@ -4,12 +4,14 @@ public class Produce implements MethodRequest {
     private int[] whatToProduce;
     public int priority = 1;
     private long producerId;
-    public Produce(Servant servant, int howManyToProduce, int[] whatToProduce, long producerId)
+    private ArrayFuture<Void> arrayFuture;
+    public Produce(Servant servant, int howManyToProduce, int[] whatToProduce, ArrayFuture<Void> arrayFuture, long producerId)
     {
         this.producerId = producerId;
         this.servant = servant;
         this.howManyToProduce = howManyToProduce;
         this.whatToProduce = whatToProduce;
+        this.arrayFuture = arrayFuture;
     }
 
     public int getPriority()
@@ -31,7 +33,7 @@ public class Produce implements MethodRequest {
     public void call() throws Exception {
         this.servant.produce(this.howManyToProduce, this.whatToProduce);
         System.out.println("PRODUCER: "+ producerId+" had produced: "+this.howManyToProduce+". In buffer: "+this.servant.buffer.size());
-
+        this.arrayFuture.bind(null);
     }
 
     @Override

@@ -41,7 +41,7 @@ public class Scheduler {
     private final void dispatch() throws Exception {
         while(true) {
             //System.out.println("I am dispatching: "+servant.howManyTakenPlaces());
-            //System.out.println("ConsumingRequest: "+consumingRequests.size()+" ProducingRequest: "+producingRequests.size()+" FREE: "+this.servant.howManyFreePlaces()+"/"+this.servant.bufferSize);
+            System.out.println("ConsumingRequest: "+consumingRequests.size()+" ProducingRequest: "+producingRequests.size()+" FREE: "+this.servant.howManyFreePlaces()+"/"+this.servant.bufferSize);
 
             if(servant.howManyTakenPlaces()>servant.bufferSize/2)
             {
@@ -56,7 +56,7 @@ public class Scheduler {
                     request = dequeProducingRequest();
                     if(request==null)continue;
                     if(!request.guard()) {
-                        System.out.println("Requeing");
+                        //System.out.println("Requeing");
                         ((Produce) request).priority *= 2;
                         enqueueProducingRequest((Produce)request);
 
