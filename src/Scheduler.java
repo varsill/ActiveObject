@@ -32,7 +32,7 @@ public class Scheduler {
        }
        consumingRequests.add( methodRequest);
        lock.unlock();
-       //System.out.println("ConsumingRequest: "+consumingRequests.size());
+
    }
 
     public void enqueueProducingRequest(Produce methodRequest) throws InterruptedException {
@@ -104,11 +104,11 @@ public class Scheduler {
         Consume result = consumingRequests.pollFirst();
 
         waitForSchedulerFinishingJobOnConsumingRequests.signalAll();
-        isSchedulerModifyingConsumingRequests=true;
+        isSchedulerModifyingConsumingRequests=false;
         lock.unlock();
         return result;
     }
-    Semaphore sem;
+
 
     private Produce dequeProducingRequestAsScheduler()
     {
@@ -118,7 +118,7 @@ public class Scheduler {
         Produce result = producingRequests.pollFirst();
 
         waitForSchedulerFinishingJobOnProducingRequests.signalAll();
-        isSchedulerModifyingProducingRequests=true;
+        isSchedulerModifyingProducingRequests=false;
         lock.unlock();
         return result;
     }
