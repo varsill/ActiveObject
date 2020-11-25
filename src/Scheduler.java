@@ -1,3 +1,5 @@
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.PriorityQueue;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.Semaphore;
@@ -8,8 +10,8 @@ import java.util.concurrent.locks.ReentrantLock;
 public class Scheduler {
 
     private final Servant servant;
-    private final ConcurrentSkipListSet<Produce> producingRequests;
-    private final ConcurrentSkipListSet<Consume> consumingRequests;
+    private final Deque<Produce> producingRequests;
+    private final Deque<Consume> consumingRequests;
 
     private ReentrantLock lockForProducingRequests = new ReentrantLock(true);
     private Condition waitForSchedulerFinishingJobOnProducingRequests = lockForProducingRequests.newCondition();
@@ -27,36 +29,33 @@ public class Scheduler {
    public Scheduler(Servant servant)
    {
        this.servant = servant;
-       producingRequests = new ConcurrentSkipListSet<Produce>();
-       consumingRequests = new ConcurrentSkipListSet<Consume>();
+       producingRequests = new LinkedList<>();
+       consumingRequests = new LinkedList<Consume>();
 
    }
 
    public void enqueueConsumingRequest(Consume methodRequest) throws InterruptedException {
-       if(methodRequest==null)System.out.println("TSO2");
+
        lockForConsumingRequests.lock();
 
        while(isSchedulerModifyingConsumingRequests)
        {
            this.waitForSchedulerFinishingJobOnConsumingRequests.await();
        }
-       lockForConsumingRequests.unlock();
+
 
        stateLock.lock();
        isAnotherThreadModyfingConsumingRequests = true;
        stateLock.unlock();
 
-       consumingRequests.add( methodRequest);
+       consumingRequests.addLast( methodRequest);
 
        stateLock.lock();
        isAnotherThreadModyfingConsumingRequests = false;
        conditionForScheduler.signal();
        stateLock.unlock();
 
-
-
-
-
+       lockForConsumingRequests.unlock();
 
    }
 
@@ -69,20 +68,20 @@ public class Scheduler {
 
             this.waitForSchedulerFinishingJobOnProducingRequests.await();
         }
-        lockForProducingRequests.unlock();
+
 
         stateLock.lock();
         isAnotherThreadModyfingProducingRequests = true;
         stateLock.unlock();
 
-        producingRequests.add(methodRequest);
+        producingRequests.addLast(methodRequest);
 
         stateLock.lock();
         isAnotherThreadModyfingProducingRequests = false;
         conditionForScheduler.signal();
         stateLock.unlock();
 
-
+        lockForProducingRequests.unlock();
 
 
        // System.out.println("ProducingRequest: "+producingRequests.size());
@@ -99,11 +98,12 @@ public class Scheduler {
         }
         stateLock.unlock();
 
-        consumingRequests.add(methodRequest);
+        lockForConsumingRequests.lock();
+        consumingRequests.addFirst(methodRequest);
 
 
         isSchedulerModifyingConsumingRequests=false;
-        lockForConsumingRequests.lock();
+
         waitForSchedulerFinishingJobOnConsumingRequests.signalAll();
         lockForConsumingRequests.unlock();
     }
@@ -118,11 +118,12 @@ public class Scheduler {
         }
         stateLock.unlock();
 
-        producingRequests.add(methodRequest);
+        lockForProducingRequests.lock();
+        producingRequests.addFirst(methodRequest);
 
 
         isSchedulerModifyingProducingRequests=false;
-        lockForProducingRequests.lock();
+
         waitForSchedulerFinishingJobOnProducingRequests.signalAll();
         lockForProducingRequests.unlock();
 
@@ -140,12 +141,12 @@ public class Scheduler {
         }
         stateLock.unlock();
 
-
+        lockForConsumingRequests.lock();
         Consume result = consumingRequests.pollFirst();
 
 
         isSchedulerModifyingConsumingRequests=false;
-        lockForConsumingRequests.lock();
+
         waitForSchedulerFinishingJobOnConsumingRequests.signalAll();
         lockForConsumingRequests.unlock();
         return result;
@@ -162,10 +163,11 @@ public class Scheduler {
         }
         stateLock.unlock();
 
+        lockForProducingRequests.lock();
         Produce result = producingRequests.pollFirst();
 
         isSchedulerModifyingProducingRequests=false;
-        lockForProducingRequests.lock();
+
         waitForSchedulerFinishingJobOnProducingRequests.signalAll();
         lockForProducingRequests.unlock();
         return result;

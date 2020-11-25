@@ -27,7 +27,7 @@ class Consumer implements Runnable
                 while(!future.isReady())
                 {
                     Thread.sleep((int) (Math.random() * 10));
-                    //System.out.println("CONSUMER: "+Thread.currentThread().getId()+" is waiting for: "+times+" time. He wants to consume: "+howManyToConsume);
+                    System.out.println("CONSUMER: "+Thread.currentThread().getId()+" is waiting for: "+times+" time. He wants to consume: "+howManyToConsume);
                     times++;
                 }
                 int[] result = future.getResult();
