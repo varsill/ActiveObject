@@ -109,6 +109,7 @@ public class Main {
             runnable = new Producer(proxy);
             Thread t = new Thread(runnable);
             list.add(t);
+            t.setPriority(1);
             t.start();
         }
 
@@ -117,6 +118,7 @@ public class Main {
             runnable = new Consumer(proxy);
             Thread t = new Thread(runnable);
             list.add(t);
+            t.setPriority(1);
             t.start();
         }
 
