@@ -1,10 +1,8 @@
+package ActiveObject;
+
 import java.util.Deque;
 import java.util.LinkedList;
-import java.util.PriorityQueue;
-import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class Scheduler {

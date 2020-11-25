@@ -1,3 +1,5 @@
+package ActiveObject;
+
 public interface MethodRequest extends Comparable
 {
     boolean guard();

@@ -1,3 +1,5 @@
+package ActiveObject;
+
 public  class Future<T>{
 
     private boolean _isReady;

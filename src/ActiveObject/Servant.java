@@ -1,3 +1,5 @@
+package ActiveObject;
+
 import java.util.LinkedList;
 
 public class Servant {

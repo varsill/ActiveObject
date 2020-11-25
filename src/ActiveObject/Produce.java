@@ -1,3 +1,5 @@
+package ActiveObject;
+
 public class Produce implements MethodRequest {
     private Servant servant;
     private int howManyToProduce;

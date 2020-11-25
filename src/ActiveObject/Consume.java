@@ -1,3 +1,5 @@
+package ActiveObject;
+
 public class Consume implements MethodRequest{
     private Servant servant;
     private int howManyToConsume;
