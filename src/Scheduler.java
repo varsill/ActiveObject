@@ -8,119 +8,165 @@ import java.util.concurrent.locks.ReentrantLock;
 public class Scheduler {
 
     private final Servant servant;
-    private final PriorityQueue<Produce> producingRequests;
-    private final PriorityQueue<Consume> consumingRequests;
-    private ReentrantLock lock = new ReentrantLock(true);
-    private Condition waitForSchedulerFinishingJobOnProducingRequests = lock.newCondition();
-    private boolean isSchedulerModifyingProducingRequests = false;
+    private final ConcurrentSkipListSet<Produce> producingRequests;
+    private final ConcurrentSkipListSet<Consume> consumingRequests;
 
-    private Condition waitForSchedulerFinishingJobOnConsumingRequests = lock.newCondition();
+    private ReentrantLock lockForProducingRequests = new ReentrantLock(true);
+    private Condition waitForSchedulerFinishingJobOnProducingRequests = lockForProducingRequests.newCondition();
+    private boolean isSchedulerModifyingProducingRequests = false;
+    private boolean isAnotherThreadModyfingProducingRequests = false;
+
+    private ReentrantLock stateLock = new ReentrantLock(true);
+    private Condition conditionForScheduler = stateLock.newCondition();
+
+    private ReentrantLock lockForConsumingRequests = new ReentrantLock(true);
+    private Condition waitForSchedulerFinishingJobOnConsumingRequests = lockForConsumingRequests.newCondition();
     private boolean isSchedulerModifyingConsumingRequests = false;
+    private boolean isAnotherThreadModyfingConsumingRequests = false;
 
    public Scheduler(Servant servant)
    {
        this.servant = servant;
-       producingRequests = new PriorityQueue<Produce>();
-       consumingRequests = new PriorityQueue<Consume>();
+       producingRequests = new ConcurrentSkipListSet<Produce>();
+       consumingRequests = new ConcurrentSkipListSet<Consume>();
 
    }
 
    public void enqueueConsumingRequest(Consume methodRequest) throws InterruptedException {
-       lock.lock();
+       if(methodRequest==null)System.out.println("TSO2");
+       lockForConsumingRequests.lock();
+
        while(isSchedulerModifyingConsumingRequests)
        {
            this.waitForSchedulerFinishingJobOnConsumingRequests.await();
        }
+
+
+       stateLock.lock();
+       isAnotherThreadModyfingConsumingRequests = true;
+       stateLock.unlock();
+
        consumingRequests.add( methodRequest);
-       lock.unlock();
+
+       stateLock.lock();
+       isAnotherThreadModyfingConsumingRequests = false;
+       conditionForScheduler.signal();
+       stateLock.unlock();
+
+
+
+
+       lockForConsumingRequests.unlock();
 
    }
 
     public void enqueueProducingRequest(Produce methodRequest) throws InterruptedException {
-        lock.lock();
+        if(methodRequest==null)System.out.println("TSO2");
+        lockForProducingRequests.lock();
+
         while(isSchedulerModifyingProducingRequests)
         {
+
             this.waitForSchedulerFinishingJobOnProducingRequests.await();
         }
+
+        stateLock.lock();
+        isAnotherThreadModyfingProducingRequests = true;
+        stateLock.unlock();
+
         producingRequests.add(methodRequest);
-        lock.unlock();
+
+        stateLock.lock();
+        isAnotherThreadModyfingProducingRequests = false;
+        conditionForScheduler.signal();
+        stateLock.unlock();
+
+
+
+        lockForProducingRequests.unlock();
        // System.out.println("ProducingRequest: "+producingRequests.size());
     }
 
-    public Consume dequeConsumingRequest() throws InterruptedException {
-        lock.lock();
-        while(isSchedulerModifyingConsumingRequests)
-        {
-            this.waitForSchedulerFinishingJobOnConsumingRequests.await();
-        }
-        Consume result = consumingRequests.poll();
-        lock.unlock();
-        return result;
-    }
 
-    public Produce dequeProducingRequest() throws InterruptedException {
-        lock.lock();
-        while(isSchedulerModifyingProducingRequests)
-        {
-            this.waitForSchedulerFinishingJobOnConsumingRequests.await();
-        }
-        Produce result = producingRequests.poll();
-        lock.unlock();
-        return  result;
-   }
-
-
-
-    private void enqueueConsumingRequestAsScheduler(Consume methodRequest)
-    {
-
+    private void enqueueConsumingRequestAsScheduler(Consume methodRequest) throws InterruptedException {
+        if(methodRequest==null)System.out.println("TSO");
         isSchedulerModifyingConsumingRequests=true;
-        lock.lock();
-        consumingRequests.add( methodRequest);
-        waitForSchedulerFinishingJobOnConsumingRequests.signalAll();
+        stateLock.lock();
+        while(isAnotherThreadModyfingConsumingRequests)
+        {
+            conditionForScheduler.await();
+        }
+        stateLock.unlock();
+
+        consumingRequests.add(methodRequest);
+
+
         isSchedulerModifyingConsumingRequests=false;
-        lock.unlock();
-        //System.out.println("ConsumingRequest: "+consumingRequests.size());
+        lockForConsumingRequests.lock();
+        waitForSchedulerFinishingJobOnConsumingRequests.signalAll();
+        lockForConsumingRequests.unlock();
     }
 
-    private void enqueueProducingRequestAsScheduler(Produce methodRequest)
-    {
-
+    private void enqueueProducingRequestAsScheduler(Produce methodRequest) throws InterruptedException {
+        if(methodRequest==null)System.out.println("TSO");
         isSchedulerModifyingProducingRequests=true;
-        lock.lock();
+        stateLock.lock();
+        while(isAnotherThreadModyfingProducingRequests)
+        {
+            conditionForScheduler.await();
+        }
+        stateLock.unlock();
+
         producingRequests.add(methodRequest);
 
-        waitForSchedulerFinishingJobOnProducingRequests.signalAll();
+
         isSchedulerModifyingProducingRequests=false;
-        lock.unlock();
+        lockForProducingRequests.lock();
+        waitForSchedulerFinishingJobOnProducingRequests.signalAll();
+        lockForProducingRequests.unlock();
+
 
         // System.out.println("ProducingRequest: "+producingRequests.size());
     }
 
-    private Consume dequeConsumingRequestAsScheduler()
-    {
+    private Consume dequeConsumingRequestAsScheduler() throws InterruptedException {
 
         isSchedulerModifyingConsumingRequests=true;
-        lock.lock();
-        Consume result = consumingRequests.poll();
+        stateLock.lock();
+        while(isAnotherThreadModyfingConsumingRequests)
+        {
+            conditionForScheduler.await();
+        }
+        stateLock.unlock();
 
-        waitForSchedulerFinishingJobOnConsumingRequests.signalAll();
+
+        Consume result = consumingRequests.pollFirst();
+
+
         isSchedulerModifyingConsumingRequests=false;
-        lock.unlock();
+        lockForConsumingRequests.lock();
+        waitForSchedulerFinishingJobOnConsumingRequests.signalAll();
+        lockForConsumingRequests.unlock();
         return result;
     }
 
 
-    private Produce dequeProducingRequestAsScheduler()
-    {
+    private Produce dequeProducingRequestAsScheduler() throws InterruptedException {
 
         isSchedulerModifyingProducingRequests=true;
-        lock.lock();
-        Produce result = producingRequests.poll();
+        stateLock.lock();
+        while(isAnotherThreadModyfingProducingRequests)
+        {
+            conditionForScheduler.await();
+        }
+        stateLock.unlock();
 
-        waitForSchedulerFinishingJobOnProducingRequests.signalAll();
+        Produce result = producingRequests.pollFirst();
+
         isSchedulerModifyingProducingRequests=false;
-        lock.unlock();
+        lockForProducingRequests.lock();
+        waitForSchedulerFinishingJobOnProducingRequests.signalAll();
+        lockForProducingRequests.unlock();
         return result;
     }
 
@@ -133,7 +179,8 @@ public class Scheduler {
         while(true) {
             //System.out.println("I am dispatching: "+servant.howManyTakenPlaces());
             //System.out.println("ConsumingRequest: "+consumingRequests.size()+" ProducingRequest: "+producingRequests.size()+" FREE: "+this.servant.howManyFreePlaces()+"/"+this.servant.bufferSize);
-
+            //if(producingRequests.contains(null))System.out.println("producing zepsuty");
+            //if(consumingRequests.contains(null))System.out.println("consuming zepsuty");
             if(servant.howManyTakenPlaces()>servant.bufferSize/2)
             {
                 //System.out.println("There are more taken places. FREE: " +servant.howManyFreePlaces());

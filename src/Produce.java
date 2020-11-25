@@ -38,6 +38,11 @@ public class Produce implements MethodRequest {
 
     @Override
     public int compareTo(Object o) {
+        if(o==null)
+        {
+            System.out.println("TSo");
+            return 1;
+        }
         if(this.priority<((Produce)o).getPriority())
         {
             return -1;
