@@ -10,7 +10,7 @@ public class Scheduler {
     private final Servant servant;
     private final PriorityQueue<Produce> producingRequests;
     private final PriorityQueue<Consume> consumingRequests;
-    private ReentrantLock lock = new ReentrantLock();
+    private ReentrantLock lock = new ReentrantLock(true);
     private Condition waitForSchedulerFinishingJobOnProducingRequests = lock.newCondition();
     private boolean isSchedulerModifyingProducingRequests = false;
 
