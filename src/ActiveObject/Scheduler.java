@@ -135,15 +135,13 @@ public class Scheduler {
         while(true) {
             //System.out.println("I am dispatching: "+servant.howManyTakenPlaces());
             //System.out.println("ConsumingRequest: "+consumingRequests.size()+" ProducingRequest: "+producingRequests.size()+" FREE: "+this.servant.howManyFreePlaces()+"/"+this.servant.bufferSize);
-            //if(producingRequests.contains(null))System.out.println("producing zepsuty");
-            //if(consumingRequests.contains(null))System.out.println("consuming zepsuty");
+
             if(servant.howManyTakenPlaces()>=servant.bufferSize/2)
             {
-                //System.out.println("There are more taken places. FREE: " +servant.howManyFreePlaces());
                 MethodRequest request = dequeConsumingRequestAsScheduler();
                 if(request!=null&&request.guard())
                 {
-                    //System.out.println("I have chosen default consumer.");
+
                     request.call();
                 }
                 else {
@@ -151,7 +149,7 @@ public class Scheduler {
                     request = dequeProducingRequestAsScheduler();
                     if(request==null)continue;
                     if(!request.guard()) {
-                        //System.out.println("Requeing");
+
                         ((Produce) request).priority *= 10;
                         enqueueProducingRequestAsScheduler((Produce)request);
 
@@ -166,19 +164,18 @@ public class Scheduler {
             }
             else
             {
-                //System.out.println("There are more free places. FREE: "+servant.howManyFreePlaces());
+
                 MethodRequest request = dequeProducingRequestAsScheduler();
                 if(request!=null&&request.guard())
                 {
-                    //System.out.println("I have chosen default producer.");
+
                     request.call();
                 }
                 else {
-                    //System.out.println("There were no producers, but there are: "+consumingRequests.size()+" consumers.");
+
                     request = dequeConsumingRequestAsScheduler();
                     if(request==null)continue;
                     if (!request.guard()) {
-                        //System.out.println("Requeing");
                         ((Consume) request).priority *= 10;
                         enqueueConsumingRequestAsScheduler((Consume)request);
 

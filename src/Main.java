@@ -6,8 +6,8 @@ import java.util.List;
 
 public class Main {
 
-    public static final int howManyProducers = 1000;
-    public static final int howManyConsumers = 1000;
+    public static final int howManyProducers = 10000;
+    public static final int howManyConsumers = 10000;
     public static final int bufferSize = 100;
     public static void main(String[] args)
     {
