@@ -1,5 +1,6 @@
 import ActiveObject.Proxy;
 
+import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,8 +10,7 @@ public class Main {
     public static final int howManyProducers = 10000;
     public static final int howManyConsumers = 10000;
     public static final int bufferSize = 100;
-    public static void main(String[] args)
-    {
+    public static void main(String[] args) throws InterruptedException {
 
         Proxy proxy = new Proxy(bufferSize);
         List<Thread> list = new ArrayList<Thread>();
@@ -37,6 +37,7 @@ public class Main {
         for(Thread t: list)
         {
             try{
+                
                 t.join();
             }
             catch (Exception e)

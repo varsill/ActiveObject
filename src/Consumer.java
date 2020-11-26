@@ -8,7 +8,8 @@ class Consumer implements Runnable
 
     private final int MAX_SIZE_TO_TAKE;
     private Proxy proxy;
-    Random rand = new Random();
+    private Random rand = new Random();
+    public int howManyMethodRequestDispatched = 0;
     public Consumer(Proxy p, int maxSizeToTake)
     {
         proxy = p;
@@ -36,6 +37,7 @@ class Consumer implements Runnable
                 future.waitForReady();
                 int[] result = future.getResult();
                 System.out.println("CONSUMER: "+Thread.currentThread().getId()+" had consumed: "+howManyToConsume);
+                howManyMethodRequestDispatched++;
             }
 
         }catch(Exception e)

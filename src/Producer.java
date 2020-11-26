@@ -8,7 +8,8 @@ class Producer implements  Runnable
     private static final int MAX_VALUE = 100;
     private final int MAX_SIZE_TO_INSERT;
     private Proxy proxy;
-    Random rand = new Random();
+    public int howManyMethodRequestDispatched = 0;
+    private Random rand = new Random();
     public Producer(Proxy p, int maxSizeToInsert)
     {
         MAX_SIZE_TO_INSERT = maxSizeToInsert;
@@ -43,6 +44,7 @@ class Producer implements  Runnable
 
                 future.waitForReady();
                 System.out.println("PRODUCER: "+Thread.currentThread().getId()+" had produced: "+howManyToProduce);
+                howManyMethodRequestDispatched++;
 
             }
         }catch(Exception e)
