@@ -22,7 +22,7 @@ public class Proxy {
     public Future<Void> produce(int howManyToProduce, int[] whatToProduce) throws InterruptedException {
         Future<Void> result = new Future<Void>();
 
-        Produce methodRequest = new Produce(this.servant, howManyToProduce, whatToProduce, result, Thread.currentThread().getId());
+        Produce methodRequest = new Produce(this.servant, howManyToProduce, whatToProduce, result, System.currentTimeMillis());
         this.scheduler.enqueueProducingRequest(methodRequest);
         return result;
     }
@@ -30,7 +30,7 @@ public class Proxy {
     public Future<int[]> consume(int howManyToConsume) throws InterruptedException {
         Future<int[]> result = new Future<int[]>();
 
-        Consume methodRequest = new Consume(this.servant, howManyToConsume, result, Thread.currentThread().getId());
+        Consume methodRequest = new Consume(this.servant, howManyToConsume, result, System.currentTimeMillis());
         this.scheduler.enqueueConsumingRequest(methodRequest);
         return result;
     }

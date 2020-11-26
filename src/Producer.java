@@ -5,6 +5,7 @@ import java.util.Random;
 
 class Producer implements  Runnable
 {
+    private static final int MAX_VALUE = 100;
     private final int MAX_SIZE_TO_INSERT;
     private Proxy proxy;
     Random rand = new Random();
@@ -23,17 +24,25 @@ class Producer implements  Runnable
                 int howManyToProduce = rand.nextInt(MAX_SIZE_TO_INSERT-1)+1;
 
                 int[] whatToProduce = new int[howManyToProduce];
+                for(int i=0; i<howManyToProduce; i++)
+                {
+                    whatToProduce[i]=rand.nextInt(MAX_VALUE);
+                }
                 Future<Void> future = proxy.produce(howManyToProduce, whatToProduce);
 
+                /*
                 int times = 1;
-
                 while(!future.isReady())
                 {
                     Thread.sleep((int) (Math.random() * 10));
-                    //System.out.println("Producer: "+Thread.currentThread().getId()+" is waiting for: "+times+" time. He wants to consume: "+howManyToConsume);
+                    System.out.println("Producer: "+Thread.currentThread().getId()+" is waiting for: "+times+" time. He wants to consume: "+howManyToProduce);
                     times++;
                 }
+                //System.out.println("PRODUCER: "+Thread.currentThread().getId()+" had produced: "+howManyToProduce+" . He waited: "+times);
+                */
 
+                future.waitForReady();
+                System.out.println("PRODUCER: "+Thread.currentThread().getId()+" had produced: "+howManyToProduce);
 
             }
         }catch(Exception e)

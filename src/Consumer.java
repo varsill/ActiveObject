@@ -22,8 +22,8 @@ class Consumer implements Runnable
             while(true){
                 int howManyToConsume = rand.nextInt(MAX_SIZE_TO_TAKE-1)+1;
                 Future<int[]> future = proxy.consume(howManyToConsume);
+                /*
                 int times = 1;
-
                 while(!future.isReady())
                 {
                     Thread.sleep((int) (Math.random() * 10));
@@ -31,11 +31,11 @@ class Consumer implements Runnable
                     times++;
                 }
                 int[] result = future.getResult();
-
-                //Thread.sleep((int) (Math.random() * 1000));
-                //System.out.println("CONSUMER: "+Thread.currentThread().getId()+" had consumed: "+howManyToConsume+" . He waited: "+times);
-
-
+                System.out.println("CONSUMER: "+Thread.currentThread().getId()+" had consumed: "+howManyToConsume+" . He waited: "+times);
+                */
+                future.waitForReady();
+                int[] result = future.getResult();
+                System.out.println("CONSUMER: "+Thread.currentThread().getId()+" had consumed: "+howManyToConsume);
             }
 
         }catch(Exception e)

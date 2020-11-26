@@ -2,86 +2,127 @@ package ActiveObject;
 
 import java.util.Deque;
 import java.util.LinkedList;
+import java.util.PriorityQueue;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class Scheduler {
 
     private final Servant servant;
-    private final Deque<Produce> producingRequests;
-    private final Deque<Consume> consumingRequests;
+    private final PriorityQueue<Produce> producingRequests;
+    private final PriorityQueue<Consume> consumingRequests;
 
     private ReentrantLock lockForProducingRequests = new ReentrantLock(true);
-    private Condition waitForSchedulerFinishingJobOnProducingRequests = lockForProducingRequests.newCondition();
-    private boolean isSchedulerModifyingProducingRequests = false;
-    private boolean isAnotherThreadModyfingProducingRequests = false;
-
-    private ReentrantLock stateLock = new ReentrantLock(true);
-    private Condition conditionForScheduler = stateLock.newCondition();
-
     private ReentrantLock lockForConsumingRequests = new ReentrantLock(true);
-    private Condition waitForSchedulerFinishingJobOnConsumingRequests = lockForConsumingRequests.newCondition();
-    private boolean isSchedulerModifyingConsumingRequests = false;
-    private boolean isAnotherThreadModyfingConsumingRequests = false;
 
    public Scheduler(Servant servant)
    {
        this.servant = servant;
-       producingRequests = new LinkedList<>();
-       consumingRequests = new LinkedList<Consume>();
+       producingRequests = new PriorityQueue<>();
+       consumingRequests = new PriorityQueue<Consume>();
 
    }
 
-   public void enqueueConsumingRequest(Consume methodRequest) throws InterruptedException {
-
-       lockForConsumingRequests.lock();
-       consumingRequests.addLast( methodRequest);
-       lockForConsumingRequests.unlock();
+   public void enqueueConsumingRequest(Consume methodRequest) {
+    try
+    {
+        lockForConsumingRequests.lock();
+        consumingRequests.add( methodRequest);
+    }
+    catch (Exception e)
+    {
+        System.out.println(e);
+    }
+    finally {
+        lockForConsumingRequests.unlock();
+    }
 
    }
 
-    public void enqueueProducingRequest(Produce methodRequest) throws InterruptedException {
+    public void enqueueProducingRequest(Produce methodRequest){
+        try
+        {
+            lockForProducingRequests.lock();
+            producingRequests.add(methodRequest);
+        }
+        catch (Exception e)
+        {
+            System.out.println();
+        }
+        finally {
+            lockForProducingRequests.unlock();
+        }
 
-        lockForProducingRequests.lock();
-        producingRequests.addLast(methodRequest);
-        lockForProducingRequests.unlock();
-
-
-       // System.out.println("ProducingRequest: "+producingRequests.size());
     }
 
 
-    private void enqueueConsumingRequestAsScheduler(Consume methodRequest) throws InterruptedException {
+    private void enqueueConsumingRequestAsScheduler(Consume methodRequest){
+       try
+       {
+           lockForConsumingRequests.lock();
+           consumingRequests.add(methodRequest);
+       }
+       catch (Exception e)
+       {
+           System.out.println(e);
+       }
+       finally {
+           lockForConsumingRequests.unlock();
+       }
 
-        lockForConsumingRequests.lock();
-        consumingRequests.addFirst(methodRequest);
-        lockForConsumingRequests.unlock();
+
     }
 
-    private void enqueueProducingRequestAsScheduler(Produce methodRequest) throws InterruptedException {
+    private void enqueueProducingRequestAsScheduler(Produce methodRequest){
+        try
+        {
+            lockForProducingRequests.lock();
+            producingRequests.add(methodRequest);
+        }
+        catch (Exception e)
+        {
+            System.out.println(e);
+        }
+        finally {
+            lockForProducingRequests.unlock();
+        }
 
-        lockForProducingRequests.lock();
-        producingRequests.addFirst(methodRequest);
-        lockForProducingRequests.unlock();
 
-
-        // System.out.println("ProducingRequest: "+producingRequests.size());
     }
 
-    private Consume dequeConsumingRequestAsScheduler() throws InterruptedException {
-
-        lockForConsumingRequests.lock();
-        Consume result = consumingRequests.pollFirst();
-        lockForConsumingRequests.unlock();
+    private Consume dequeConsumingRequestAsScheduler() {
+        Consume result = null;
+        try
+        {
+            lockForConsumingRequests.lock();
+            result = consumingRequests.poll();
+        }
+        catch (Exception e)
+        {
+            System.out.println(e);
+        }
+        finally {
+            lockForConsumingRequests.unlock();
+        }
         return result;
     }
 
 
     private Produce dequeProducingRequestAsScheduler() throws InterruptedException {
+       Produce result = null;
+       try
+        {
+            lockForProducingRequests.lock();
+            result = producingRequests.poll();
+        }
+        catch (Exception e)
+        {
+            System.out.println(e);
+        }
+        finally {
+            lockForProducingRequests.unlock();
+        }
 
-        lockForProducingRequests.lock();
-        Produce result = producingRequests.pollFirst();
-        lockForProducingRequests.unlock();
         return result;
     }
 
@@ -111,7 +152,7 @@ public class Scheduler {
                     if(request==null)continue;
                     if(!request.guard()) {
                         //System.out.println("Requeing");
-                        ((Produce) request).priority *= 2;
+                        ((Produce) request).priority *= 10;
                         enqueueProducingRequestAsScheduler((Produce)request);
 
                     }
@@ -138,7 +179,7 @@ public class Scheduler {
                     if(request==null)continue;
                     if (!request.guard()) {
                         //System.out.println("Requeing");
-                        ((Consume) request).priority *= 2;
+                        ((Consume) request).priority *= 10;
                         enqueueConsumingRequestAsScheduler((Consume)request);
 
                     }

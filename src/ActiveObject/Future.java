@@ -9,16 +9,23 @@ public  class Future<T>{
         this._isReady = false;
     }
 
-    public void bind(T result) {
+    public synchronized void bind(T result) {
         this.result = result;
         this._isReady=true;
+        notify();
     }
 
-    public boolean isReady()
+    public synchronized boolean  isReady()
     {
         return _isReady;
     }
+    public synchronized void waitForReady() throws InterruptedException {
+        while(!_isReady)
+        {
+            wait();
+        }
 
+    }
     public T getResult() throws Exception
     {
         if(!_isReady)

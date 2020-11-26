@@ -5,11 +5,11 @@ public class Produce implements MethodRequest {
     private int howManyToProduce;
     private int[] whatToProduce;
     public int priority = 1;
-    private long producerId;
+    private long creationTime;
     private Future<Void> future;
-    public Produce(Servant servant, int howManyToProduce, int[] whatToProduce, Future<Void> future, long producerId)
+    public Produce(Servant servant, int howManyToProduce, int[] whatToProduce, Future<Void> future, long creationTime)
     {
-        this.producerId = producerId;
+        this.creationTime = creationTime;
         this.servant = servant;
         this.howManyToProduce = howManyToProduce;
         this.whatToProduce = whatToProduce;
@@ -26,7 +26,6 @@ public class Produce implements MethodRequest {
         if(this.servant.canPutNElements(this.howManyToProduce))return true;
         else
         {
-           // System.out.println("Guard rejection because of: "+this.servant.buffer.size());
             return false;
         }
     }
@@ -34,24 +33,18 @@ public class Produce implements MethodRequest {
     @Override
     public void call() throws Exception {
         this.servant.produce(this.howManyToProduce, this.whatToProduce);
-        System.out.println("PRODUCER: "+ producerId+" had produced: "+this.howManyToProduce+". In buffer: "+this.servant.buffer.size());
         this.future.bind(null);
     }
 
     @Override
     public int compareTo(Object o) {
-        if(o==null)
-        {
-            System.out.println("TSo");
-            return 1;
-        }
         if(this.priority<((Produce)o).getPriority())
         {
             return -1;
         }
         else if(this.priority==((Produce)o).getPriority())
         {
-            if(this.producerId<((Produce)o).producerId)
+            if(this.creationTime<((Produce)o).creationTime)
             {
                 return -1;
             }
