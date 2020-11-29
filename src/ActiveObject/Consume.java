@@ -7,6 +7,7 @@ public class Consume extends MethodRequestWithPriority {
 
     public Consume(Servant servant, int howManyToConsume, Future<int[]> future, long creationTime)
     {
+
         this.creationTime = creationTime;
         this.servant = servant;
         this.howManyToConsume = howManyToConsume;

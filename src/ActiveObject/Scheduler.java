@@ -109,7 +109,8 @@ public class Scheduler {
                         request = dequeProducingRequestAsScheduler();
                         if (request != null && !request.guard()) {
 
-                            ((Produce) request).priority *= 10;
+                            ((Produce) request).priority += 1;
+                            //((Produce) request).creationTime = System.currentTimeMillis();
                             enqueueProducingRequestAsScheduler((Produce) request);
 
                         } else {
@@ -132,7 +133,8 @@ public class Scheduler {
                         request = dequeConsumingRequestAsScheduler();
 
                         if (request != null && !request.guard()) {
-                            ((Consume) request).priority *= 10;
+                            ((Consume) request).priority += 1;
+                            //((Consume) request).creationTime = System.currentTimeMillis();
                             enqueueConsumingRequestAsScheduler((Consume) request);
 
                         } else {
@@ -147,15 +149,14 @@ public class Scheduler {
                     }
                 }
                 if (!wasCalled) {
-                    //System.out.println("l");
                     condition.await();
+
                 }
                 lock.unlock();
 
             }
         }catch (Exception e)
         {
-            //System.out.println("XDDD123");
             running.set(false);
         }
 

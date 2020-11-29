@@ -43,6 +43,7 @@ class Consumer implements Runnable
             //System.out.println("CONSUMER: "+Thread.currentThread().getId()+":"+howManyMethodRequestDispatched);
         }catch(Exception e)
         {
+
             running.set(false);
             System.out.println("CONSUMER: "+Thread.currentThread().getId()+":"+howManyMethodRequestDispatched);
             //System.out.println(e);

@@ -2,7 +2,7 @@ package ActiveObject;
 
 public class Produce extends MethodRequestWithPriority {
     private Servant servant;
-    private int howManyToProduce;
+    public int howManyToProduce;
     private int[] whatToProduce;
 
     private Future<Void> future;

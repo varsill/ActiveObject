@@ -2,10 +2,10 @@ package ActiveObject;
 
 public abstract class MethodRequestWithPriority implements MethodRequest{
     public int priority = 1;
-    protected long creationTime;
+    public long creationTime;
     @Override
     public int compareTo(Object o) {
-        if(this.priority<((MethodRequestWithPriority)o).priority)
+        if(this.priority>((MethodRequestWithPriority)o).priority)
         {
             return -1;
         }
