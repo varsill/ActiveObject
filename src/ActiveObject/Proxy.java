@@ -5,12 +5,12 @@ public class Proxy {
 
     protected Scheduler scheduler;
     protected Servant servant;
-
+    public Thread schedulerThread;
     public Proxy(int size)
     {
         this.servant = new Servant(size);
         this.scheduler = new Scheduler(servant);
-        this.scheduler.startExecutingThread();
+        schedulerThread = this.scheduler.startExecutingThread();
 
     }
 

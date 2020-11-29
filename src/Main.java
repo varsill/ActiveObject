@@ -8,17 +8,17 @@ import java.util.List;
 
 public class Main {
 
-    public static int howManyProducers;
-    public static int howManyConsumers;
-    public static int bufferSize;
-    public static int timeout;
+    public static int howManyProducers=1000;
+    public static int howManyConsumers=1000;
+    public static int bufferSize=100;
+    public static int timeout=5000;
     public static void main(String[] args) throws InterruptedException {
-
-        howManyProducers=Integer.parseInt(args[0]);
-        howManyConsumers=Integer.parseInt(args[1]);
-        bufferSize=Integer.parseInt(args[2]);
-        timeout = Integer.parseInt(args[3]);
-
+        if(args.length==4) {
+            howManyProducers = Integer.parseInt(args[0]);
+            howManyConsumers = Integer.parseInt(args[1]);
+            bufferSize = Integer.parseInt(args[2]);
+            timeout = Integer.parseInt(args[3]);
+        }
         Proxy proxy = new Proxy(bufferSize);
 
         List<Thread> list = new ArrayList<Thread>();
@@ -41,17 +41,41 @@ public class Main {
             t.start();
         }
         Thread.sleep(timeout);
-
         for(Thread t: list)
         {
             try{
                 t.interrupt();
-                t.join();
+
             }
             catch (Exception e)
             {
+                System.out.println(e);
+            }
+        }
+
+
+        for(Thread t: list)
+        {
+            try{
+                t.join();
 
             }
+            catch (Exception e)
+            {
+                System.out.println(e);
+            }
+        }
+
+
+        try{
+            proxy.schedulerThread.interrupt();
+            proxy.schedulerThread.join();
+
+
+        }
+        catch (Exception e)
+        {
+            System.out.println(e);
         }
 
 

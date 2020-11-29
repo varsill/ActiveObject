@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 class Producer implements  Runnable
 {
     private AtomicBoolean running = new AtomicBoolean(true);
-    private static final int MAX_VALUE = 100;
+    private static final int MAX_VALUE = 10000;
     private final int MAX_SIZE_TO_INSERT;
     private Proxy proxy;
     public int howManyMethodRequestDispatched = 0;
@@ -45,12 +45,12 @@ class Producer implements  Runnable
                 */
 
                 future.waitForReady();
-                System.out.println("PRODUCER: "+Thread.currentThread().getId()+" had produced: "+howManyToProduce);
+                //System.out.println("PRODUCER: "+Thread.currentThread().getId()+" had produced: "+howManyToProduce);
                 howManyMethodRequestDispatched++;
 
             }
 
-            System.out.println("PRODUCER: "+Thread.currentThread().getId()+":"+howManyMethodRequestDispatched);
+            //System.out.println("PRODUCER: "+Thread.currentThread().getId()+":"+howManyMethodRequestDispatched);
         }catch(Exception e)
         {
             running.set(false);

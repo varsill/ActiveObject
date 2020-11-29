@@ -20,7 +20,7 @@ class Consumer implements Runnable
     public void run() {
 
         try {
-
+            long startTime = System.currentTimeMillis();
             while(running.get()){
                 int howManyToConsume = rand.nextInt(MAX_SIZE_TO_TAKE-1)+1;
                 Future<int[]> future = proxy.consume(howManyToConsume);
@@ -37,10 +37,10 @@ class Consumer implements Runnable
                 */
                 future.waitForReady();
                 int[] result = future.getResult();
-                System.out.println("CONSUMER: "+Thread.currentThread().getId()+" had consumed: "+howManyToConsume);
+                //System.out.println("CONSUMER: "+Thread.currentThread().getId()+" had consumed: "+howManyToConsume);
                 howManyMethodRequestDispatched++;
             }
-            System.out.println("CONSUMER: "+Thread.currentThread().getId()+":"+howManyMethodRequestDispatched);
+            //System.out.println("CONSUMER: "+Thread.currentThread().getId()+":"+howManyMethodRequestDispatched);
         }catch(Exception e)
         {
             running.set(false);
