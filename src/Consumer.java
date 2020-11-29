@@ -2,10 +2,11 @@ import ActiveObject.Future;
 import ActiveObject.Proxy;
 
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 class Consumer implements Runnable
 {
-
+    private AtomicBoolean running = new AtomicBoolean(true);
     private final int MAX_SIZE_TO_TAKE;
     private Proxy proxy;
     private Random rand = new Random();
@@ -20,7 +21,7 @@ class Consumer implements Runnable
 
         try {
 
-            while(true){
+            while(running.get()){
                 int howManyToConsume = rand.nextInt(MAX_SIZE_TO_TAKE-1)+1;
                 Future<int[]> future = proxy.consume(howManyToConsume);
                 /*
@@ -39,10 +40,12 @@ class Consumer implements Runnable
                 System.out.println("CONSUMER: "+Thread.currentThread().getId()+" had consumed: "+howManyToConsume);
                 howManyMethodRequestDispatched++;
             }
-
+            System.out.println("CONSUMER: "+Thread.currentThread().getId()+":"+howManyMethodRequestDispatched);
         }catch(Exception e)
         {
-            System.out.println(e);
+            running.set(false);
+            System.out.println("CONSUMER: "+Thread.currentThread().getId()+":"+howManyMethodRequestDispatched);
+            //System.out.println(e);
         }
     }
 }

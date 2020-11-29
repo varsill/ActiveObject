@@ -12,45 +12,49 @@ public class Scheduler {
     private final PriorityQueue<Produce> producingRequests;
     private final PriorityQueue<Consume> consumingRequests;
 
-    private ReentrantLock lockForProducingRequests = new ReentrantLock(true);
-    private ReentrantLock lockForConsumingRequests = new ReentrantLock(true);
+    private ReentrantLock lock= new ReentrantLock(true);
+    private Condition condition = lock.newCondition();
+
 
    public Scheduler(Servant servant)
    {
        this.servant = servant;
        producingRequests = new PriorityQueue<>();
        consumingRequests = new PriorityQueue<Consume>();
-
    }
 
    public void enqueueConsumingRequest(Consume methodRequest) {
-    try
+
+
+       lock.lock();
+       try
     {
-        lockForConsumingRequests.lock();
-        consumingRequests.add( methodRequest);
+        consumingRequests.add(methodRequest);
+        condition.signal();
     }
     catch (Exception e)
     {
         System.out.println(e);
     }
     finally {
-        lockForConsumingRequests.unlock();
+        lock.unlock();
     }
 
    }
 
     public void enqueueProducingRequest(Produce methodRequest){
-        try
+       lock.lock();
+       try
         {
-            lockForProducingRequests.lock();
             producingRequests.add(methodRequest);
+            condition.signal();
         }
         catch (Exception e)
         {
             System.out.println();
         }
         finally {
-            lockForProducingRequests.unlock();
+            lock.unlock();
         }
 
     }
@@ -59,7 +63,7 @@ public class Scheduler {
     private void enqueueConsumingRequestAsScheduler(Consume methodRequest){
        try
        {
-           lockForConsumingRequests.lock();
+           //lock.lock();
            consumingRequests.add(methodRequest);
        }
        catch (Exception e)
@@ -67,7 +71,7 @@ public class Scheduler {
            System.out.println(e);
        }
        finally {
-           lockForConsumingRequests.unlock();
+           //lock.unlock();
        }
 
 
@@ -76,7 +80,7 @@ public class Scheduler {
     private void enqueueProducingRequestAsScheduler(Produce methodRequest){
         try
         {
-            lockForProducingRequests.lock();
+            //lock.lock();
             producingRequests.add(methodRequest);
         }
         catch (Exception e)
@@ -84,7 +88,7 @@ public class Scheduler {
             System.out.println(e);
         }
         finally {
-            lockForProducingRequests.unlock();
+            //lock.unlock();
         }
 
 
@@ -94,7 +98,7 @@ public class Scheduler {
         Consume result = null;
         try
         {
-            lockForConsumingRequests.lock();
+            //lock.lock();
             result = consumingRequests.poll();
         }
         catch (Exception e)
@@ -102,7 +106,7 @@ public class Scheduler {
             System.out.println(e);
         }
         finally {
-            lockForConsumingRequests.unlock();
+            //lock.unlock();
         }
         return result;
     }
@@ -112,7 +116,7 @@ public class Scheduler {
        Produce result = null;
        try
         {
-            lockForProducingRequests.lock();
+            //lock.lock();
             result = producingRequests.poll();
         }
         catch (Exception e)
@@ -120,7 +124,7 @@ public class Scheduler {
             System.out.println(e);
         }
         finally {
-            lockForProducingRequests.unlock();
+            //lock.unlock();
         }
 
         return result;
@@ -132,10 +136,11 @@ public class Scheduler {
 
 
     private final void dispatch() throws Exception {
+        boolean wasCalled = false;
         while(true) {
             //System.out.println("I am dispatching: "+servant.howManyTakenPlaces());
             //System.out.println("ConsumingRequest: "+consumingRequests.size()+" ProducingRequest: "+producingRequests.size()+" FREE: "+this.servant.howManyFreePlaces()+"/"+this.servant.bufferSize);
-
+            lock.lock();
             if(servant.howManyTakenPlaces()>=servant.bufferSize/2)
             {
                 MethodRequest request = dequeConsumingRequestAsScheduler();
@@ -143,12 +148,12 @@ public class Scheduler {
                 {
 
                     request.call();
+                    wasCalled = true;
                 }
                 else {
 
                     request = dequeProducingRequestAsScheduler();
-                    if(request==null)continue;
-                    if(!request.guard()) {
+                    if(request!=null&&!request.guard()) {
 
                         ((Produce) request).priority *= 10;
                         enqueueProducingRequestAsScheduler((Produce)request);
@@ -156,7 +161,11 @@ public class Scheduler {
                     }
                     else
                     {
-                        request.call();
+                        if(request!=null)
+                        {
+                            request.call();
+                            wasCalled = true;
+                        }
                     }
 
 
@@ -168,26 +177,37 @@ public class Scheduler {
                 MethodRequest request = dequeProducingRequestAsScheduler();
                 if(request!=null&&request.guard())
                 {
-
                     request.call();
+                    wasCalled = true;
                 }
                 else {
 
                     request = dequeConsumingRequestAsScheduler();
-                    if(request==null)continue;
-                    if (!request.guard()) {
+
+                    if (request!=null&&!request.guard()) {
                         ((Consume) request).priority *= 10;
                         enqueueConsumingRequestAsScheduler((Consume)request);
 
                     }
                     else
                     {
-                        request.call();
+                        if(request!=null)
+                        {
+                            request.call();
+                            wasCalled = true;
+                        }
+
                     }
 
 
                 }
             }
+            if(!wasCalled)
+            {
+                System.out.println("l");
+                condition.await();
+            }
+            lock.unlock();
 
         }
     }

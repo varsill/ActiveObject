@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Created-By: 14 (Oracle Corporation)
+Main-Class: ActiveObject.Main
+

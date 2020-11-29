@@ -1,3 +1,4 @@
+
 import ActiveObject.Proxy;
 
 import javax.swing.*;
@@ -7,12 +8,19 @@ import java.util.List;
 
 public class Main {
 
-    public static final int howManyProducers = 10000;
-    public static final int howManyConsumers = 10000;
-    public static final int bufferSize = 100;
+    public static int howManyProducers;
+    public static int howManyConsumers;
+    public static int bufferSize;
+    public static int timeout;
     public static void main(String[] args) throws InterruptedException {
 
+        howManyProducers=Integer.parseInt(args[0]);
+        howManyConsumers=Integer.parseInt(args[1]);
+        bufferSize=Integer.parseInt(args[2]);
+        timeout = Integer.parseInt(args[3]);
+
         Proxy proxy = new Proxy(bufferSize);
+
         List<Thread> list = new ArrayList<Thread>();
         Runnable runnable;
         for(int i=0; i<howManyProducers; i++)
@@ -32,12 +40,12 @@ public class Main {
             t.setPriority(1);
             t.start();
         }
-
+        Thread.sleep(timeout);
 
         for(Thread t: list)
         {
             try{
-                
+                t.interrupt();
                 t.join();
             }
             catch (Exception e)

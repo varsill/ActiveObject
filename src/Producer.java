@@ -2,9 +2,11 @@ import ActiveObject.Future;
 import ActiveObject.Proxy;
 
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 class Producer implements  Runnable
 {
+    private AtomicBoolean running = new AtomicBoolean(true);
     private static final int MAX_VALUE = 100;
     private final int MAX_SIZE_TO_INSERT;
     private Proxy proxy;
@@ -20,7 +22,7 @@ class Producer implements  Runnable
 
         try{
 
-            while(true) {
+            while(running.get()) {
 
                 int howManyToProduce = rand.nextInt(MAX_SIZE_TO_INSERT-1)+1;
 
@@ -47,9 +49,14 @@ class Producer implements  Runnable
                 howManyMethodRequestDispatched++;
 
             }
+
+            System.out.println("PRODUCER: "+Thread.currentThread().getId()+":"+howManyMethodRequestDispatched);
         }catch(Exception e)
         {
-            System.out.println(e);
+            running.set(false);
+            System.out.println("PRODUCER: "+Thread.currentThread().getId()+":"+howManyMethodRequestDispatched);
+            //System.out.println(e);
+
         }
     }
 }
