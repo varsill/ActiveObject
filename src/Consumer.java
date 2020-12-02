@@ -8,44 +8,73 @@ class Consumer implements Runnable
 {
     private AtomicBoolean running = new AtomicBoolean(true);
     private final int MAX_SIZE_TO_TAKE;
+    private final int COUNT_LIMIT;
     private Proxy proxy;
     private Random rand = new Random();
     public int howManyMethodRequestDispatched = 0;
-    public Consumer(Proxy p, int maxSizeToTake)
+    public Consumer(Proxy p, int maxSizeToTake, int countLimit)
     {
         proxy = p;
         MAX_SIZE_TO_TAKE = maxSizeToTake;
+        COUNT_LIMIT = countLimit;
     }
+
+    private int timeConsumingTask()
+    {
+        int i =0;
+        int sum = 0;
+        while(i<1000)
+        {
+            int r = rand.nextInt(10);
+            sum+=r;
+            i++;
+        }
+        return sum;
+
+    }
+
     @Override
     public void run() {
 
         try {
-            long startTime = System.currentTimeMillis();
+
             while(running.get()){
                 int howManyToConsume = rand.nextInt(MAX_SIZE_TO_TAKE-1)+1;
                 Future<int[]> future = proxy.consume(howManyToConsume);
-                /*
-                int times = 1;
-                while(!future.isReady())
+                int i=0;
+               while(!future.isReady())
                 {
-                    Thread.sleep((int) (Math.random() * 10));
-                    //System.out.println("CONSUMER: "+Thread.currentThread().getId()+" is waiting for: "+times+" time. He wants to consume: "+howManyToConsume);
-                    times++;
+                    if(i<COUNT_LIMIT)
+                    {
+                        i++;
+                        timeConsumingTask();
+                    }
+                    else
+                    {
+                        break;
+                    }
+
                 }
-                int[] result = future.getResult();
-                System.out.println("CONSUMER: "+Thread.currentThread().getId()+" had consumed: "+howManyToConsume+" . He waited: "+times);
-                */
+               while(i<COUNT_LIMIT)
+               {
+                   i++;
+                   timeConsumingTask();
+               }
+
                 future.waitForReady();
-                int[] result = future.getResult();
-                //System.out.println("CONSUMER: "+Thread.currentThread().getId()+" had consumed: "+howManyToConsume);
                 howManyMethodRequestDispatched++;
+                if(Thread.interrupted())
+                {
+                    running.set(false);
+                    System.out.println("C,"+howManyMethodRequestDispatched);
+                }
             }
-            //System.out.println("CONSUMER: "+Thread.currentThread().getId()+":"+howManyMethodRequestDispatched);
+
         }catch(Exception e)
         {
 
             running.set(false);
-            System.out.println("CONSUMER: "+Thread.currentThread().getId()+":"+howManyMethodRequestDispatched);
+            System.out.println("C,"+howManyMethodRequestDispatched);
             //System.out.println(e);
         }
     }
